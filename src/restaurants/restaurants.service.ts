@@ -163,6 +163,7 @@ export class RestaurantService {
     slug,
     page,
   }: CategoryInput): Promise<CategoryOutput> {
+    const ITEMS = 3
     try {
       const category = await this.categories.findOne({ slug });
       if (!category) {
@@ -171,20 +172,22 @@ export class RestaurantService {
           error: 'Category not found',
         };
       }
-      const restauratns = await this.restaurants.find({
+      const restaurants = await this.restaurants.find({
         where: {
           category,
         },
-        take: 25,
-        skip: (page - 1) * 25,
+        take: ITEMS,
+        skip: (page - 1) * ITEMS,
         order: { isPromoted: 'DESC' },
       });
-      category.restaurants = restauratns;
+      category.restaurants = restaurants;
       const totalResults = await this.countRestaurants(category);
       return {
         ok: true,
+        restaurants,
         category,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / ITEMS),
+        totalResults,
       };
     } catch {
       return {
@@ -195,10 +198,11 @@ export class RestaurantService {
   }
 
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
+    const ITEMS = 3
     try {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
-        skip: (page - 1) * 25,
-        take: 25,
+        skip: (page - 1) * ITEMS,
+        take: ITEMS,
         order: {
           isPromoted: 'DESC',
         },
@@ -206,7 +210,7 @@ export class RestaurantService {
       return {
         ok: true,
         results: restaurants,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / ITEMS),
         totalResults,
       };
     } catch {
