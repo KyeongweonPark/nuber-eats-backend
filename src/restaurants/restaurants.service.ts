@@ -23,6 +23,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import {
   SearchRestaurantInput,
@@ -163,7 +164,7 @@ export class RestaurantService {
     slug,
     page,
   }: CategoryInput): Promise<CategoryOutput> {
-    const ITEMS = 3
+    const ITEMS = 3;
     try {
       const category = await this.categories.findOne({ slug });
       if (!category) {
@@ -198,7 +199,7 @@ export class RestaurantService {
   }
 
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
-    const ITEMS = 3
+    const ITEMS = 3;
     try {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         skip: (page - 1) * ITEMS,
@@ -250,19 +251,20 @@ export class RestaurantService {
     query,
     page,
   }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+    const ITEMS = 3;
     try {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
         where: {
           name: Raw((name) => `${name} ILIKE '%${query}%'`),
         },
-        skip: (page - 1) * 25,
-        take: 25,
+        skip: (page - 1) * ITEMS,
+        take: ITEMS,
       });
       return {
         ok: true,
         restaurants,
         totalResults,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / ITEMS),
       };
     } catch {
       return {
@@ -339,7 +341,7 @@ export class RestaurantService {
     } catch {
       return {
         ok: false,
-        error: 'Could not delete dish',
+        error: 'Could not edit dish',
       };
     }
   }
@@ -372,6 +374,21 @@ export class RestaurantService {
       return {
         ok: false,
         error: 'Could not delete dish',
+      };
+    }
+  }
+
+  async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
+    try {
+      const restaurants = await this.restaurants.find({ owner });
+      return {
+        restaurants,
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not find restaurants.',
       };
     }
   }
